@@ -10,7 +10,21 @@
 int acceptInput();
 void showCWD();
 void listDir(char *path);
+void changeDir(char *path);
+void parseInput(char *input, char **command, char **args);
 
+
+// function to parse the input into commands and arguments
+void parseInput(char *input, char **command, char **args){
+
+    // parse the command from the input string
+    *command = strtok(input, " "); 
+
+    //parse the arguments from the input string
+    *args = strtok(NULL, "");
+
+
+}
 
 // function to allow user input that can be processed
 int acceptInput(){
@@ -23,17 +37,42 @@ int acceptInput(){
         // Remove newline character if present at the end of the input
         user_input[strcspn(user_input, "\n")] = '\0';
 
-        // Check if the user input is "exit"
-        if (strcmp(user_input, "exit") == 0) {
+        char *command = NULL;
+        char *args = NULL;
+        parseInput(user_input, &command, &args);
+
+        // Check if the user input is "exit" or "quit"
+        if (strcmp(command, "exit") == 0 || strcmp(command, "quit") == 0) {
             // Exit the program
             exit(0);
             return 0;
         }
         // Check if the user input is "ls"
-        else if (strcmp(user_input, "ls") == 0) {
+        else if (strcmp(command, "ls") == 0) {
+            // if no arguments are passed with ls command then list cwd
+            if((args == NULL) || strlen(args) == 0){
             // list the contents of the current directory
             listDir(".");
-        } else {
+            }
+            // if arguments are passed, list directory in arguments
+            else{
+                listDir(args);
+            }
+        } 
+
+        else if(strcmp(user_input, "cd") == 0){
+            // if no arguments are passed with cd command, cd back to home dir of current user
+            if(args == NULL || strlen(args) ==0){
+            
+            char *home = getenv("HOME");
+            //change directory
+            changeDir(home);
+            }
+            else{
+                changeDir(args);
+            }
+        }
+        else {
             // Handle other commands or default case
         }
 
@@ -74,12 +113,6 @@ void listDir(char *path) {
     closedir(dp);
 }
 
-
-
-// function to show the current directory as a prompt
-// function to allow user input that can be processed
-int acceptInput();
-
 // function to show the current directory as a prompt
 void showCWD(){
 
@@ -92,6 +125,11 @@ void showCWD(){
     printf("%s> ", cwd);
 
     acceptInput();
+}
+
+// function to change the current directory
+void changeDir(char *path){
+    chdir(path);
 }
 
 // main function
