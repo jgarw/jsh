@@ -89,12 +89,14 @@ int acceptInput(){
                     mkdirName[strcspn(mkdirName, "\n")] = '\0';
                     //create directory from name entered
                     makedir(mkdirName);
+                }else{
+                    fprintf(stderr, "Error reading directory name.\n");
                 }
-                else{
+            }
+            else{
                     // if arguments are passed, create directory with argument as directory name
                     makedir(args);
                 }
-            }
         }
 
         return 0;
