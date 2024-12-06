@@ -4,6 +4,7 @@
 # include <dirent.h>
 # include <stdbool.h>
 # include <stdlib.h>
+# include <sys/stat.h>
 
 # define MAX_CHAR_LENGTH 1024
 
@@ -11,6 +12,7 @@ int acceptInput();
 void showCWD();
 void listDir(char *path);
 void changeDir(char *path);
+void makedir(char *dirname);
 void parseInput(char *input, char **command, char **args);
 
 
@@ -60,6 +62,7 @@ int acceptInput(){
             }
         } 
 
+        // if user enters cd
         else if(strcmp(user_input, "cd") == 0){
             // if no arguments are passed with cd command, cd back to home dir of current user
             if(args == NULL || strlen(args) ==0){
@@ -68,12 +71,30 @@ int acceptInput(){
             //change directory
             changeDir(home);
             }
-            else{
+            else {
                 changeDir(args);
             }
         }
-        else {
-            // Handle other commands or default case
+
+        // if user enters mkdir
+        else if(strcmp(user_input, "mkdir") == 0){
+            if(args == NULL || strlen(args) == 0){
+                printf("Enter desired directory name: ");
+
+                char mkdirName[MAX_CHAR_LENGTH];
+
+                if (fgets(mkdirName, sizeof(mkdirName), stdin) != NULL) {
+
+                    //remove newline character from directory name entered
+                    mkdirName[strcspn(mkdirName, "\n")] = '\0';
+                    //create directory from name entered
+                    makedir(mkdirName);
+                }
+                else{
+                    // if arguments are passed, create directory with argument as directory name
+                    makedir(args);
+                }
+            }
         }
 
         return 0;
@@ -130,6 +151,11 @@ void showCWD(){
 // function to change the current directory
 void changeDir(char *path){
     chdir(path);
+}
+
+// function to create a new directory
+void makedir(char *dirname){
+    mkdir(dirname, 0755);
 }
 
 // main function
