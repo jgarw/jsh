@@ -2,6 +2,8 @@
 # include <unistd.h>
 # include <string.h>
 # include <dirent.h>
+# include <stdbool.h>
+# include <stdlib.h>
 
 # define MAX_CHAR_LENGTH 1024
 
@@ -20,12 +22,16 @@ int acceptInput(){
 
         // Remove newline character if present at the end of the input
         user_input[strcspn(user_input, "\n")] = '\0';
-        
-        // Print user input back to the user
-        printf("You entered: %s\n", user_input);
 
-        if (strcmp(user_input, "ls") == 0) {
-            // Handle some_command
+        // Check if the user input is "exit"
+        if (strcmp(user_input, "exit") == 0) {
+            // Exit the program
+            exit(0);
+            return 0;
+        }
+        // Check if the user input is "ls"
+        else if (strcmp(user_input, "ls") == 0) {
+            // list the contents of the current directory
             listDir(".");
         } else {
             // Handle other commands or default case
@@ -62,6 +68,8 @@ void listDir(char *path) {
         printf("%s  ", entry->d_name);
     }
 
+    printf("\n");
+
     // Close the directory
     closedir(dp);
 }
@@ -86,8 +94,12 @@ void showCWD(){
     acceptInput();
 }
 
+// main function
 int main(){
 
-    showCWD();
+    do {
+        showCWD();
+    } while (1);
+
     return 0;
 }
