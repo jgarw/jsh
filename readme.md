@@ -36,7 +36,17 @@ This project is a simple custom command-line shell written in C. It replicates b
 
 ## Compilation and Usage  
 1. Clone this repository:  
-   ```bash  
+   ```shell  
    git clone <repository_url>  
    cd <repository_name>  
+   ```
 
+2. Compile the program
+   ```shell
+   gcc shell.c -o jsh  
+   ```
+
+3. Run the shell
+   ```shell
+   ./jsh
+   ```
