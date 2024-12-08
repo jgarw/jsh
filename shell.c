@@ -52,11 +52,31 @@ int processInput(){
 
     // set the cwd variable to the maximum size
     char cwd[1024];
+    char branch[MAX_CHAR_LENGTH] = "";
+
+    // Check if the current directory is part of a Git repository
+    FILE *fp = popen("git rev-parse --abbrev-ref HEAD 2>/dev/null", "r");
+    if (fp != NULL) {
+        if (fgets(branch, sizeof(branch), fp) != NULL) {
+            // Remove trailing newline from branch name
+            branch[strcspn(branch, "\n")] = '\0';
+        }
+        pclose(fp);
+    }
+
+    
+
+    // create variable used to build prompt string
     char prompt_str[MAX_CHAR_LENGTH];
     // get cwd
     getcwd(cwd, sizeof(cwd));
 
-    snprintf(prompt_str, sizeof(prompt_str), "\033[32m%s>\033[0m ", cwd);
+
+    if (strlen(branch) > 0) {
+        snprintf(prompt_str, sizeof(prompt_str), "\033[34m%s (\033[33m%s\033[34m)> \033[0m ", cwd, branch);
+    } else {
+        snprintf(prompt_str, sizeof(prompt_str), "\033[34m%s> \033[0m ", cwd);
+    }
 
 
     // use readline to handle user input
@@ -96,16 +116,10 @@ int processInput(){
         }
         return 0;
     }
-    // else{
-    //     // Handle input errors
-    //     perror("Error reading user input");
-    //     return 1;
-    // }
-// }
 
 // function to handle any external commands entered
-void externalCommand(char *command, char *args)
-{
+void externalCommand(char *command, char *args){
+
     pid_t pid = fork();
     if (pid == -1){
         perror("fork");
@@ -151,20 +165,6 @@ void externalCommand(char *command, char *args)
         int status;
         waitpid(pid, &status, 0);
     }
-}
-
-// function to show the current directory as a prompt
-void prompt(){
-
-    // set the cwd variable to the maximum size
-    char cwd[1024];
-    // get cwd
-    getcwd(cwd, sizeof(cwd));
-
-    // print out cwd to console
-    printf("\033[32m%s \033[0m> ", cwd);
-
-    processInput();
 }
 
 // function to change the current directory
