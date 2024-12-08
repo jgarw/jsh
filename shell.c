@@ -4,6 +4,7 @@
 # include <dirent.h>
 # include <stdbool.h>
 # include <stdlib.h>
+# include <sys/wait.h>
 # include <sys/stat.h>
 
 # define MAX_CHAR_LENGTH 1024
@@ -23,6 +24,7 @@ void listDir(char *path);
 void changeDir(char *path);
 void makedir(char *dirname);
 void parseInput(char *input, char **command, char **args);
+void externalCommand(char *command, char *args);
 CommandType getCommandType(char *command);
 
 
@@ -36,10 +38,7 @@ void parseInput(char *input, char **command, char **args){
 
 // create a function that returns an enum based on command entered to use in switch
 CommandType getCommandType(char *command){
-    // return CMS_LS if command is "ls"
-    if(strcmp(command, "ls") == 0){ return CMD_LS; }
-    else if(strcmp(command, "cd") == 0){ return CMD_CD; }
-    else if(strcmp(command, "mkdir") == 0){ return CMD_MKDIR; }
+    if(strcmp(command, "cd") == 0){ return CMD_CD; }
     else if(strcmp(command, "exit") == 0){return CMD_EXIT; }
     else { return CMD_UNKNOWN; }
 }
@@ -68,18 +67,6 @@ int processInput(){
                 exit(0);
                 return 0;
                 break;
-
-            case (CMD_LS):
-                // if no arguments are passed with ls command then list cwd
-                if((args == NULL) || strlen(args) == 0){
-                    // list the contents of the current directory
-                    listDir(".");
-                }
-                // if arguments are passed, list directory in arguments
-                else{
-                    listDir(args);
-                }
-                break;
             
             case (CMD_CD):
 
@@ -95,32 +82,11 @@ int processInput(){
 
                 break;
 
-            case (CMD_MKDIR):
-
-                if(args == NULL || strlen(args) == 0){
-                    printf("Enter desired directory name: ");
-
-                    char mkdirName[MAX_CHAR_LENGTH];
-
-                    if (fgets(mkdirName, sizeof(mkdirName), stdin) != NULL) {
-
-                        //remove newline character from directory name entered
-                        mkdirName[strcspn(mkdirName, "\n")] = '\0';
-                        //create directory from name entered
-                        makedir(mkdirName);
-                    }else{
-                        fprintf(stderr, "Error reading directory name.\n");
-                    }
-                }
-                else {
-                        // if arguments are passed, create directory with argument as directory name
-                        makedir(args);
-                    }
-                break;
-
             case (CMD_UNKNOWN):
-                fprintf(stderr, "unknown command entered.\n");
-                prompt();
+                // fprintf(stderr, "unknown command entered.\n");
+                // prompt();
+                externalCommand(command, args);
+                break;
         }
 
         return 0;
@@ -132,33 +98,55 @@ int processInput(){
     }
 }
 
-// function to list the contents of the current directory
-void listDir(char *path) {
+// function to handle any external commands entered
+void externalCommand(char *command, char *args){
 
-    // create a pointer to a directory entry
-    struct dirent *entry;
+    pid_t pid = fork();
 
-    // create a pointer to a directory stream
-    DIR *dp;
-
-    // open the directory stream
-    dp = opendir(path);
-
-    // check if the directory stream is null
-    if (dp == NULL) {
-        perror("opendir");
-        return;
+    if(pid == -1){
+        perror("fork");
     }
+    else if(pid == 0){
+        //create an array to store the arguments
+        char *argv[MAX_CHAR_LENGTH];
 
-    // read the directory entries
-    while ((entry = readdir(dp))) {
-        printf("%s  ", entry->d_name);
+        //the first element of the array is the command
+        argv[0] = command;
+
+        // if there were arguments entered
+        if(args != NULL){
+            // create variable to hold arguments by seperating arguments entered by spaces between them
+            char *token = strtok(args, " ");
+
+            int i = 1;
+            // iterate through the arguments passed
+            while (token != NULL){
+                //store each argument(token) in the argument array(argv)
+                argv[i++] = token;
+                // return the next argument/token from the string entered
+                token = strtok(NULL, " ");
+            }
+
+            argv[i] = NULL;
+        }
+        else{
+            argv[1] = NULL;
+        }
+
+        //execute the command and arguments passed
+            execvp(command, argv);
+
+            // If execvp returns, it means the command failed
+            perror("execvp");
+            exit(EXIT_FAILURE);
     }
+    
+    else{
 
-    printf("\n");
+            int status;
+            waitpid(pid, &status, 0);
+        }
 
-    // Close the directory
-    closedir(dp);
 }
 
 // function to show the current directory as a prompt
@@ -170,7 +158,7 @@ void prompt(){
     getcwd(cwd, sizeof(cwd));
 
     //print out cwd to console
-    printf("%s> ", cwd);
+    printf("\033[32m%s \033[0m> ", cwd);
 
     processInput();
 }
@@ -178,13 +166,6 @@ void prompt(){
 // function to change the current directory
 void changeDir(char *path){
     chdir(path);
-}
-
-// function to create a new directory
-void makedir(char *dirname){
-
-    // create directory with 755 permissions
-    mkdir(dirname, 0755);
 }
 
 // main function
