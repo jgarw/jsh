@@ -11,9 +11,7 @@
 
 // define an enum that will be used in switch statement based on commands entered
 typedef enum {
-    CMD_LS,
     CMD_CD,
-    CMD_MKDIR,
     CMD_EXIT,
     CMD_UNKNOWN
 } CommandType;
