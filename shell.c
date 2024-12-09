@@ -73,9 +73,9 @@ int processInput(){
 
 
     if (strlen(branch) > 0) {
-        snprintf(prompt_str, sizeof(prompt_str), "\033[34m%s (\033[33m%s\033[34m)> \033[0m ", cwd, branch);
+        snprintf(prompt_str, sizeof(prompt_str), "\033[34m[%s](\033[33m%s\033[34m)$ \033[0m", cwd, branch);
     } else {
-        snprintf(prompt_str, sizeof(prompt_str), "\033[34m%s> \033[0m ", cwd);
+        snprintf(prompt_str, sizeof(prompt_str), "\033[34m[%s]$ \033[0m", cwd);
     }
 
 
