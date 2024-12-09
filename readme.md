@@ -1,52 +1,65 @@
-# Custom Command-Line Shell  
+# 🚀 Custom Unix Shell
 
-This project is a simple custom command-line shell written in C. It replicates basic shell functionalities such as navigating directories (`cd`), listing directory contents (`ls`), and accepting user commands.  
+This project is a custom Unix shell implemented in C, designed to replicate and enhance core shell functionalities with a user-friendly experience. It supports built-in commands, external command execution, and dynamic Git branch prompts.
 
-## Features  
-- **Directory Navigation (`cd`)**:  
-  - Change to a specified directory.  
-  - Navigate to the user's home directory when no argument is provided.  
-- **List Directory Contents (`ls`)**:  
-  - Display the contents of the current or specified directory.  
-- **Command Prompt**:  
-  - Displays the current working directory (`cwd`) as the shell prompt.  
-- **Input Parsing**:  
-  - Processes user commands and arguments efficiently.  
-- **Error Handling**:  
-  - Graceful error messages for invalid commands or paths.  
+## 📋 Features
 
-## How It Works  
-1. The program displays the current working directory as a prompt.  
-2. Users can input commands like `ls`, `cd <path>`, or `exit`.  
-3. The shell processes the input and executes the corresponding functionality.  
+- **Core Shell Commands:**
+  - Supports built-in commands like `cd` and `exit`.
+  - Executes external commands with argument handling and process management.
 
-## Commands  
-- `ls`  
-  - Lists the contents of the current directory if no argument is provided.  
-  - Accepts a path argument to list the contents of a specific directory.  
-- `cd`  
-  - Changes to the specified directory.  
-  - Navigates to the user's home directory if no argument is provided.  
-- `exit` or `quit`  
-  - Exits the shell.  
+- **Dynamic Git Branch Prompt:**
+  - Displays the current Git branch in the prompt if the working directory is inside a Git repository.
 
-## Prerequisites  
-- A C compiler (e.g., `gcc`).  
-- A Unix-like operating system (Linux/MacOS).  
+- **Command History:**
+  - Supports command history using the `readline` library, allowing easy retrieval of past commands.
 
-## Compilation and Usage  
-1. Clone this repository:  
-   ```shell  
-   git clone <repository_url>  
-   cd <repository_name>  
-   ```
+- **Error Handling:**
+  - Provides error messages for failed commands and handles edge cases gracefully.
 
-2. Compile the program
-   ```shell
-   gcc shell.c -o jsh  
-   ```
+## 🛠️ Installation
 
-3. Run the shell
-   ```shell
-   ./jsh
-   ```
+### Dependencies 📦
+
+Ensure the following dependencies are installed:
+
+- **GCC Compiler:**  
+  - apt:
+    ```shell
+    sudo apt install build-essential
+    ```
+  - Homebrew:
+    ```shell
+    brew install gcc
+    ```
+  - dnf:
+    ```shell
+    sudo dnf install gcc
+    ```
+- **Readline:**
+  - apt:
+    ```shell
+    sudo apt install libreadline-dev
+    ```
+  - Homebrew:
+    ```shell
+    brew install readline
+    ```
+  - dnf:
+    ```shell
+    sudo dnf install readline-devel
+    ```
+
+### Build the Shell 🔨
+
+Clone the repository and build the shell:
+```shell
+git clone <repository-url>
+cd <project-folder>
+gcc shell.c -o jsh -lreadline
+```
+
+## Run the Shell 💻
+```shell
+./jsh
+```
