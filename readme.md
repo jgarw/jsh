@@ -19,11 +19,11 @@ This project is a custom Unix shell implemented in C, designed to replicate and 
 
 ## 🛠️ Installation
 
-### 1. Dependencies 📦
+### Dependencies 📦
 
 Ensure the following dependencies are installed:
 
-- **GCC Compiler:**  
+**GCC Compiler:**  
   - apt:
     ```shell
     sudo apt install build-essential
@@ -36,7 +36,7 @@ Ensure the following dependencies are installed:
     ```shell
     sudo dnf install gcc
     ```
-- **Readline:**
+**Readline Library:**
   - apt:
     ```shell
     sudo apt install libreadline-dev
@@ -50,7 +50,7 @@ Ensure the following dependencies are installed:
     sudo dnf install readline-devel
     ```
 
-### 2. Build the Shell 🔨
+### Build the Shell 🔨
 
 Clone the repository and build the shell:
 ```shell
@@ -59,12 +59,12 @@ cd <project-folder>
 gcc shell.c -o jsh -lreadline
 ```
 
-### 3. Run the Shell 💻
+### Run the Shell 💻
 ```shell
 ./jsh
 ```
 
-## Upcoming Features
+## 📅 Upcoming Features
 
 - **Syntax Highlighting**
 - **Installation Script**
