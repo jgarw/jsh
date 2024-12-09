@@ -19,7 +19,7 @@ This project is a custom Unix shell implemented in C, designed to replicate and 
 
 ## 🛠️ Installation
 
-### Dependencies 📦
+### 1. Dependencies 📦
 
 Ensure the following dependencies are installed:
 
@@ -50,7 +50,7 @@ Ensure the following dependencies are installed:
     sudo dnf install readline-devel
     ```
 
-### Build the Shell 🔨
+### 2. Build the Shell 🔨
 
 Clone the repository and build the shell:
 ```shell
@@ -59,7 +59,13 @@ cd <project-folder>
 gcc shell.c -o jsh -lreadline
 ```
 
-## Run the Shell 💻
+### 3. Run the Shell 💻
 ```shell
 ./jsh
 ```
+
+## Upcoming Features
+
+- **Syntax Highlighting**
+- **Installation Script**
+- **Aliasing**
