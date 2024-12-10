@@ -95,7 +95,17 @@ void addAlias(char *name, char *value)
 
         // if the alias name doesnt exist yet, copy entered name and value into alias list
         strcpy(aliases[alias_count].name, name);
-        strcpy(aliases[alias_count].value, value);
+
+        // Remove surrounding quotes if present
+        if (value[0] == '"' && value[strlen(value) - 1] == '"')
+        {
+            value[strlen(value) - 1] = '\0';               // Remove trailing quote
+            strcpy(aliases[alias_count].value, value + 1); // Skip leading quote
+        }
+        else
+        {
+            strcpy(aliases[alias_count].value, value);
+        }
 
         // print a message stating that alias was created
         printf("Alias %s='%s' created.\n", aliases[alias_count].name, aliases[alias_count].value);
@@ -108,9 +118,11 @@ void addAlias(char *name, char *value)
 char *getAlias(char *name)
 {
     // iterate through the list of aliases
-    for(int i = 0; i < alias_count; i++){
+    for (int i = 0; i < alias_count; i++)
+    {
         // if an alias with a matching name is found, return the value
-        if(strcmp(aliases[i].name, name) == 0){
+        if (strcmp(aliases[i].name, name) == 0)
+        {
             return aliases[i].value;
         }
     }
@@ -178,7 +190,20 @@ int processInput()
     char *aliasValue = getAlias(command);
     if (aliasValue != NULL)
     {
-        parseInput(aliasValue, &command, &args);
+        char expandedCommand[MAX_CHAR_LENGTH];
+        if (args != NULL)
+        {
+            snprintf(expandedCommand, sizeof(expandedCommand), "%s %s", aliasValue, args);
+        }
+        else
+        {
+            snprintf(expandedCommand, sizeof(expandedCommand), "%s", aliasValue);
+        }
+
+        // Now parse the expanded command
+        parseInput(expandedCommand, &command, &args);
+        // update cmdType with expanded command from alias
+        cmdType = getCommandType(command);
     }
 
     switch (cmdType)
@@ -208,7 +233,8 @@ int processInput()
         break;
 
     case (CMD_ALIAS):
-        if(args != NULL){
+        if (args != NULL)
+        {
 
             char *name = strtok(args, "=");
             char *value = strtok(NULL, "");
