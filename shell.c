@@ -85,6 +85,7 @@ void loadConfig(){
         fprintf(file, "# This is your jsh config file. Enter aliases here.\n# Example:\n");
         // enter an example alias 
         fprintf(file, "alias ll='ls -al'\n");
+        fclose(file);
         
         return;
     }
@@ -112,7 +113,23 @@ void loadConfig(){
             char *name = strtok(alias_part, "=");
             char *value = strtok(NULL, "");
 
-            addAlias(name, value);
+            if (name && value)
+            {
+                // Remove surrounding quotes if present
+                if ((value[0] == '\'' && value[strlen(value) - 1] == '\'') ||
+                    (value[0] == '"' && value[strlen(value) - 1] == '"'))
+                {
+                    value[strlen(value) - 1] = '\0'; // Remove trailing quote
+                    strcpy(aliases[alias_count].value, value + 1);
+                }
+                else
+                {
+                    strcpy(aliases[alias_count].value, value);
+                }
+
+                strcpy(aliases[alias_count].name, name);
+                alias_count++;
+            }
         }
     }
 
@@ -150,7 +167,7 @@ void addAlias(char *name, char *value)
         strcpy(aliases[alias_count].name, name);
 
         // Remove surrounding quotes if present
-        if (value[0] == '"' && value[strlen(value) - 1] == '"' || (value[0] == '\'' && value[strlen(value) - 1] == '\''))
+        if ((value[0] == '\'' && value[strlen(value) - 1] == '\'') || (value[0] == '"' && value[strlen(value) - 1] == '"'))
         {
             value[strlen(value) - 1] = '\0';               // Remove trailing quote
             strcpy(aliases[alias_count].value, value + 1); // Skip leading quote
@@ -162,6 +179,24 @@ void addAlias(char *name, char *value)
 
         // print a message stating that alias was created
         //printf("Alias %s='%s' created.\n", aliases[alias_count].name, aliases[alias_count].value);
+
+        // get the home directory location
+        char *home = getenv("HOME");
+
+        char location[MAX_CHAR_LENGTH];
+
+        snprintf(location, sizeof(location), "%s/.jshrc", home);
+
+        FILE *file = fopen(location, "a");
+        if (file)
+        {
+            fprintf(file, "alias %s='%s'\n", name, aliases[alias_count].value);
+            fclose(file);
+        }
+        else
+        {
+            fprintf(stderr, "Error: Could not open .jshrc for writing.\n");
+        }
 
         alias_count++;
     }
@@ -358,7 +393,7 @@ void externalCommand(char *command, char *args)
         execvp(command, argv);
 
         // If execvp returns, it means the command failed
-        perror("execvp");
+        fprintf(stderr, "Unknown Command: %s\n", command);
         exit(EXIT_FAILURE);
     }
 
