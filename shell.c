@@ -64,6 +64,7 @@ CommandType getCommandType(char *command)
     }
 }
 
+// create a function to load the contents of .jshrc on shell start
 void loadConfig(){
 
     // get the home directory location
@@ -234,7 +235,9 @@ char *buildPrompt()
     static char prompt_str[MAX_CHAR_LENGTH];
 
     // set the cwd variable to the maximum size
-    char cwd[1024];
+    char cwd[MAX_CHAR_LENGTH];
+    char *home_dir = getenv("HOME");
+    char *user = getenv("USER");
     char branch[MAX_CHAR_LENGTH] = "";
 
     // Check if the current directory is part of a Git repository
@@ -252,14 +255,23 @@ char *buildPrompt()
     // get cwd
     getcwd(cwd, sizeof(cwd));
 
+    // create variable to hold relative path string
+    char relative_path[MAX_CHAR_LENGTH];
+
+    // if cwd and home_dir are the same up until the length of home_dir, then cwd is under users home dir
+    if (strncmp(cwd, home_dir, strlen(home_dir)) == 0){
+        // build the relative path by reading cwd starting from where home_dir ends
+        snprintf(relative_path, sizeof(relative_path), "~%s", cwd + strlen(home_dir));
+    }
+
     // if there is a git branch, build prompt with branch name
     if (strlen(branch) > 0)
     {
-        snprintf(prompt_str, sizeof(prompt_str), "\033[34m[%s](\033[33m%s\033[34m)$ \033[0m", cwd, branch);
+        snprintf(prompt_str, sizeof(prompt_str), "\033[34m[%s][%s](\033[33m%s\033[34m)$ \033[0m", user, relative_path, branch);
     }
     else
     {
-        snprintf(prompt_str, sizeof(prompt_str), "\033[34m[%s]$ \033[0m", cwd);
+        snprintf(prompt_str, sizeof(prompt_str), "\033[34m[%s][%s]$ \033[0m", user, relative_path);
     }
 
     return prompt_str;
