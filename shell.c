@@ -69,7 +69,7 @@ void loadConfig(){
     // get the home directory location
     char *home = getenv("HOME");
 
-    char *location[MAX_CHAR_LENGTH];
+    char location[MAX_CHAR_LENGTH];
 
     snprintf(location, sizeof(location), "%s/.jshrc", home);
 
@@ -83,6 +83,7 @@ void loadConfig(){
 
         printf("Creating .jshrc file in your home directory...\n");
         fprintf(file, "# This is your jsh config file. Enter aliases here.\n# Example:\n");
+        // enter an example alias 
         fprintf(file, "alias ll='ls -al'\n");
         
         return;
@@ -160,7 +161,7 @@ void addAlias(char *name, char *value)
         }
 
         // print a message stating that alias was created
-        printf("Alias %s='%s' created.\n", aliases[alias_count].name, aliases[alias_count].value);
+        //printf("Alias %s='%s' created.\n", aliases[alias_count].name, aliases[alias_count].value);
 
         alias_count++;
     }
