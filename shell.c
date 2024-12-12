@@ -78,10 +78,10 @@ void loadConfig(){
     // handle case of no .jshrc file
     if (file == NULL)
     {
-        fprintf(stderr, "No .jshrc file found in %s.\n", location);
+        fprintf(stderr, "\033[31mNo .jshrc file found in %s.\n", location);
         file = fopen(location, "w");
 
-        printf("Creating .jshrc file in your home directory...\n");
+        printf("\033[33mCreating .jshrc file in your home directory...\n\033[0m");
         fprintf(file, "# This is your jsh config file. Enter aliases here.\n# Example:\n");
         // enter an example alias 
         fprintf(file, "alias ll='ls -al'\n");
@@ -179,24 +179,6 @@ void addAlias(char *name, char *value)
 
         // print a message stating that alias was created
         //printf("Alias %s='%s' created.\n", aliases[alias_count].name, aliases[alias_count].value);
-
-        // get the home directory location
-        char *home = getenv("HOME");
-
-        char location[MAX_CHAR_LENGTH];
-
-        snprintf(location, sizeof(location), "%s/.jshrc", home);
-
-        FILE *file = fopen(location, "a");
-        if (file)
-        {
-            fprintf(file, "alias %s='%s'\n", name, aliases[alias_count].value);
-            fclose(file);
-        }
-        else
-        {
-            fprintf(stderr, "Error: Could not open .jshrc for writing.\n");
-        }
 
         alias_count++;
     }
