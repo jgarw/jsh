@@ -10,7 +10,7 @@
 #include <readline/history.h>
 
 #define MAX_CHAR_LENGTH 1024
-#define MAX_ALIASES 50
+#define MAX_ALIASES 100
 #define MAX_ALIAS_NAME 50
 #define MAX_ALIAS_VALUE 1024
 
@@ -35,7 +35,7 @@ Alias aliases[MAX_ALIASES];
 int alias_count = 0;
 
 int processInput();
-void prompt();
+char *buildPrompt();
 void changeDir(char *path);
 void parseInput(char *input, char **command, char **args);
 void externalCommand(char *command, char *args);
@@ -139,9 +139,11 @@ void parseInput(char *input, char **command, char **args)
     *args = strtok(NULL, "");
 }
 
-// function to allow user input that can be processed
-int processInput()
+// create function that will build a prompt string
+char *buildPrompt()
 {
+
+    static char prompt_str[MAX_CHAR_LENGTH];
 
     // set the cwd variable to the maximum size
     char cwd[1024];
@@ -159,8 +161,6 @@ int processInput()
         pclose(fp);
     }
 
-    // create variable used to build prompt string
-    char prompt_str[MAX_CHAR_LENGTH];
     // get cwd
     getcwd(cwd, sizeof(cwd));
 
@@ -173,6 +173,16 @@ int processInput()
     {
         snprintf(prompt_str, sizeof(prompt_str), "\033[34m[%s]$ \033[0m", cwd);
     }
+
+    return prompt_str;
+}
+
+// function to allow user input that can be processed
+int processInput()
+{
+
+    // create pointer to built prompt string
+    char *prompt_str = buildPrompt();
 
     // use readline to handle user input
     char *user_input = readline(prompt_str);
@@ -188,9 +198,13 @@ int processInput()
 
     // Check if the command is an alias
     char *aliasValue = getAlias(command);
+
+    // if command has an alias
     if (aliasValue != NULL)
     {
         char expandedCommand[MAX_CHAR_LENGTH];
+
+        // if arguments entered with alias, break up alias into command and args
         if (args != NULL)
         {
             snprintf(expandedCommand, sizeof(expandedCommand), "%s %s", aliasValue, args);
