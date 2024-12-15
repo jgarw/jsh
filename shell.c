@@ -19,6 +19,7 @@ typedef enum
 {
     CMD_CD,
     CMD_ALIAS,
+    CMD_SOURCE,
     CMD_EXIT,
     CMD_UNKNOWN
 } CommandType;
@@ -53,6 +54,9 @@ CommandType getCommandType(char *command)
     else if (strcmp(command, "alias") == 0)
     {
         return CMD_ALIAS;
+    }
+    else if (strcmp(command, "source") == 0){
+        return CMD_SOURCE;
     }
     else if (strcmp(command, "exit") == 0)
     {
@@ -359,6 +363,10 @@ int processInput()
             addAlias(name, value);
         }
 
+        break;
+
+    case CMD_SOURCE:
+        loadConfig();
         break;
 
     case (CMD_UNKNOWN):
