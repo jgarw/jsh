@@ -399,6 +399,7 @@ int externalCommand(char *command, char *args)
     char *pipePosition = strchr(fullCommand, '|');
     if(pipePosition != NULL){
 
+        // terminate first command
         *pipePosition = '\0';
 
         // split the entered command into 2 seperate commands
