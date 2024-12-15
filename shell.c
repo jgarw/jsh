@@ -42,7 +42,6 @@ int externalCommand(char *command, char *args);
 CommandType getCommandType(char *command);
 void addAlias(char *name, char *value);
 char *getAlias(char *name);
-int executePipeCommand(char *input);
 
 // create a function that returns an enum based on command entered to use in switch
 CommandType getCommandType(char *command)
@@ -411,7 +410,6 @@ int externalCommand(char *command, char *args)
         if(pipe(fd) == -1){
             perror("Pipe Error");
             return 1;
-            exit(EXIT_FAILURE);
         }
 
         pid_t pid1 = fork();
@@ -423,6 +421,7 @@ int externalCommand(char *command, char *args)
             exit(EXIT_FAILURE);
         }
 
+        // inside child process
         if(pid1 == 0){
             // close the read end of the pipe
             close(fd[0]);
