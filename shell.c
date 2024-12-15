@@ -38,7 +38,7 @@ char *buildPrompt();
 void loadConfig();
 void changeDir(char *path);
 void parseInput(char *input, char **command, char **args);
-void externalCommand(char *command, char *args);
+int externalCommand(char *command, char *args);
 CommandType getCommandType(char *command);
 void addAlias(char *name, char *value);
 char *getAlias(char *name);
@@ -64,6 +64,7 @@ CommandType getCommandType(char *command)
     }
 }
 
+// create a function to load the contents of .jshrc on shell start
 void loadConfig(){
 
     // get the home directory location
@@ -216,7 +217,9 @@ char *buildPrompt()
     static char prompt_str[MAX_CHAR_LENGTH];
 
     // set the cwd variable to the maximum size
-    char cwd[1024];
+    char cwd[MAX_CHAR_LENGTH];
+    char *home_dir = getenv("HOME");
+    char *user = getenv("USER");
     char branch[MAX_CHAR_LENGTH] = "";
 
     // Check if the current directory is part of a Git repository
@@ -234,14 +237,24 @@ char *buildPrompt()
     // get cwd
     getcwd(cwd, sizeof(cwd));
 
-    // if there is a git branch, build prompt with branch name
-    if (strlen(branch) > 0)
-    {
-        snprintf(prompt_str, sizeof(prompt_str), "\033[34m[%s](\033[33m%s\033[34m)$ \033[0m", cwd, branch);
-    }
-    else
-    {
-        snprintf(prompt_str, sizeof(prompt_str), "\033[34m[%s]$ \033[0m", cwd);
+    // create variable to hold relative path string
+    char relative_path[MAX_CHAR_LENGTH];
+    if(cwd){
+        // if cwd and home_dir are the same up until the length of home_dir, then cwd is under users home dir
+        if (strncmp(cwd, home_dir, strlen(home_dir)) == 0){
+            // build the relative path by reading cwd starting from where home_dir ends
+            snprintf(relative_path, sizeof(relative_path), "~%s", cwd + strlen(home_dir));
+        }
+
+        // if there is a git branch, build prompt with branch name
+        if (strlen(branch) > 0)
+        {
+            snprintf(prompt_str, sizeof(prompt_str), "\033[34m[%s][%s](\033[33m%s\033[34m)$ \033[0m", user, relative_path, branch);
+        }
+        else
+        {
+            snprintf(prompt_str, sizeof(prompt_str), "\033[34m[%s][%s]$ \033[0m", user, relative_path);
+        }
     }
 
     return prompt_str;
@@ -254,8 +267,25 @@ int processInput()
     // create pointer to built prompt string
     char *prompt_str = buildPrompt();
 
+    // handle errors for building prompt
+    if (prompt_str == NULL){
+        fprintf(stderr, "Unable to build prompt.");
+        return 1;   
+    }
+
     // use readline to handle user input
     char *user_input = readline(prompt_str);
+
+    // handle case of no user input
+    if(user_input == NULL){
+        fprintf(stderr, "Exiting shell...\n");
+        return 1;
+    }
+
+    if(strlen(user_input) == 0){
+        fprintf(stderr, "Nothing entered. nothing to do...\n");
+        return 0;
+    }
 
     // Remove newline character if present at the end of the input
     user_input[strcspn(user_input, "\n")] = '\0';
@@ -323,22 +353,26 @@ int processInput()
         break;
 
     case (CMD_UNKNOWN):
-        // fprintf(stderr, "unknown command entered.\n");
-        // prompt();
         externalCommand(command, args);
+        break;
+
+    default:
+        fprintf(stderr, "Unrecognized command type\n");
+        return 1;
         break;
     }
     return 0;
 }
 
 // function to handle any external commands entered
-void externalCommand(char *command, char *args)
+int externalCommand(char *command, char *args)
 {
 
     pid_t pid = fork();
     if (pid == -1)
     {
-        perror("fork");
+        perror("fork failed.\n");
+        return 1;
     }
     else if (pid == 0)
     {
@@ -376,14 +410,16 @@ void externalCommand(char *command, char *args)
 
         // If execvp returns, it means the command failed
         fprintf(stderr, "Unknown Command: %s\n", command);
+        return 1;
         exit(EXIT_FAILURE);
     }
 
     else
     {
-
+        // wait for child preocess to finish
         int status;
         waitpid(pid, &status, 0);
+        return 0;
     }
 }
 
@@ -397,10 +433,11 @@ void changeDir(char *path)
 int main()
 {
     loadConfig();
-    do
+    while(1)
     {
-        processInput();
-    } while (1);
-
+        if(processInput() != 0){
+            break;
+        }
+    } 
     return 0;
 }
