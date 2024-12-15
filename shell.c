@@ -65,7 +65,8 @@ CommandType getCommandType(char *command)
 }
 
 // create a function to load the contents of .jshrc on shell start
-void loadConfig(){
+void loadConfig()
+{
 
     // get the home directory location
     char *home = getenv("HOME");
@@ -84,33 +85,36 @@ void loadConfig(){
 
         printf("\033[33mCreating .jshrc file in your home directory...\n\033[0m");
         fprintf(file, "# This is your jsh config file. Enter aliases here.\n# Example:\n");
-        // enter an example alias 
+        // enter an example alias
         fprintf(file, "alias ll='ls -al'\n");
         fclose(file);
-        
+
         return;
     }
-    
+
     // store lines read
     char line[MAX_CHAR_LENGTH];
-    while(fgets(line, sizeof(line), file) != NULL){
+    while (fgets(line, sizeof(line), file) != NULL)
+    {
 
         line[strcspn(line, "\n")] = '\0';
 
         // skip lines that start with # (comments)
-        if(line[0] == '#'){
+        if (line[0] == '#')
+        {
             continue;
         }
 
         // skip empty lines
-        if(strlen(line) == 0){
+        if (strlen(line) == 0)
+        {
             continue;
         }
 
         // Parse alias lines (e.g., "alias ll='ls -al'")
         if (strncmp(line, "alias ", 6) == 0)
         {
-            char *alias_part = line + 6;  // Skip the "alias " part
+            char *alias_part = line + 6; // Skip the "alias " part
             char *name = strtok(alias_part, "=");
             char *value = strtok(NULL, "");
 
@@ -135,8 +139,6 @@ void loadConfig(){
     }
 
     fclose(file);
-
-
 }
 
 // create a funciton that allows user to create aliases
@@ -179,7 +181,7 @@ void addAlias(char *name, char *value)
         }
 
         // print a message stating that alias was created
-        //printf("Alias %s='%s' created.\n", aliases[alias_count].name, aliases[alias_count].value);
+        // printf("Alias %s='%s' created.\n", aliases[alias_count].name, aliases[alias_count].value);
 
         alias_count++;
     }
@@ -239,21 +241,27 @@ char *buildPrompt()
 
     // create variable to hold relative path string
     char relative_path[MAX_CHAR_LENGTH];
-        // if cwd and home_dir are the same up until the length of home_dir, then cwd is under users home dir
-        if (strncmp(cwd, home_dir, strlen(home_dir)) == 0){
-            // build the relative path by reading cwd starting from where home_dir ends
-            snprintf(relative_path, sizeof(relative_path), "~%s", cwd + strlen(home_dir));
-        }
+    // if cwd and home_dir are the same up until the length of home_dir, then cwd is under users home dir
+    if (strncmp(cwd, home_dir, strlen(home_dir)) == 0)
+    {
+        // build the relative path by reading cwd starting from where home_dir ends
+        snprintf(relative_path, sizeof(relative_path), "~%s", cwd + strlen(home_dir));
+    }
+    else
+    {
+        // if not inside the home directory, show the absolute path
+        snprintf(relative_path, sizeof(relative_path), "%s", cwd);
+    }
 
-        // if there is a git branch, build prompt with branch name
-        if (strlen(branch) > 0)
-        {
-            snprintf(prompt_str, sizeof(prompt_str), "\033[34m[%s][%s](\033[33m%s\033[34m)$ \033[0m", user, relative_path, branch);
-        }
-        else
-        {
-            snprintf(prompt_str, sizeof(prompt_str), "\033[34m[%s][%s]$ \033[0m", user, relative_path);
-        }
+    // if there is a git branch, build prompt with branch name
+    if (strlen(branch) > 0)
+    {
+        snprintf(prompt_str, sizeof(prompt_str), "\033[34m[%s][%s](\033[33m%s\033[34m)$ \033[0m", user, relative_path, branch);
+    }
+    else
+    {
+        snprintf(prompt_str, sizeof(prompt_str), "\033[34m[%s][%s]$ \033[0m", user, relative_path);
+    }
 
     return prompt_str;
 }
@@ -266,21 +274,24 @@ int processInput()
     char *prompt_str = buildPrompt();
 
     // handle errors for building prompt
-    if (prompt_str == NULL){
+    if (prompt_str == NULL)
+    {
         fprintf(stderr, "Unable to build prompt.");
-        return 1;   
+        return 1;
     }
 
     // use readline to handle user input
     char *user_input = readline(prompt_str);
 
     // handle case of no user input
-    if(user_input == NULL){
+    if (user_input == NULL)
+    {
         fprintf(stderr, "Exiting shell...\n");
         return 1;
     }
 
-    if(strlen(user_input) == 0){
+    if (strlen(user_input) == 0)
+    {
         fprintf(stderr, "Nothing entered. nothing to do...\n");
         return 0;
     }
@@ -369,16 +380,19 @@ int externalCommand(char *command, char *args)
     // create full command to check for pipe
     char fullCommand[MAX_CHAR_LENGTH];
 
-    if(args != NULL){
+    if (args != NULL)
+    {
         snprintf(fullCommand, sizeof(fullCommand), "%s %s", command, args);
     }
-    else{
+    else
+    {
         snprintf(fullCommand, sizeof(fullCommand), "%s", command);
     }
 
-    // handle if command entered has a pipe 
+    // handle if command entered has a pipe
     char *pipePosition = strchr(fullCommand, '|');
-    if(pipePosition != NULL){
+    if (pipePosition != NULL)
+    {
 
         // terminate first command
         *pipePosition = '\0';
@@ -389,7 +403,8 @@ int externalCommand(char *command, char *args)
 
         int fd[2];
 
-        if(pipe(fd) == -1){
+        if (pipe(fd) == -1)
+        {
             perror("Pipe Error");
             return 1;
         }
@@ -397,14 +412,16 @@ int externalCommand(char *command, char *args)
         pid_t pid1 = fork();
 
         // if the fork failed
-        if(pid1 == -1){
+        if (pid1 == -1)
+        {
             perror("Fork error");
             return 1;
             exit(EXIT_FAILURE);
         }
 
         // inside child process
-        if(pid1 == 0){
+        if (pid1 == 0)
+        {
             // close the read end of the pipe
             close(fd[0]);
             // redirect to pipe read end
@@ -423,13 +440,15 @@ int externalCommand(char *command, char *args)
         pid_t pid2 = fork();
 
         // if the fork failed
-        if(pid2 == -1){
+        if (pid2 == -1)
+        {
             perror("Fork error");
             return 1;
             exit(EXIT_FAILURE);
         }
 
-        if(pid2 == 0){
+        if (pid2 == 0)
+        {
             // close the read end of the pipe
             close(fd[1]);
             // redirect to pipe write end
@@ -452,7 +471,8 @@ int externalCommand(char *command, char *args)
         return 0;
     }
 
-    else{
+    else
+    {
 
         pid_t pid = fork();
         if (pid == -1)
@@ -520,11 +540,12 @@ void changeDir(char *path)
 int main()
 {
     loadConfig();
-    while(1)
+    while (1)
     {
-        if(processInput() != 0){
+        if (processInput() != 0)
+        {
             break;
         }
-    } 
+    }
     return 0;
 }
