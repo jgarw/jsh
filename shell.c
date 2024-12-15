@@ -42,6 +42,7 @@ int externalCommand(char *command, char *args);
 CommandType getCommandType(char *command);
 void addAlias(char *name, char *value);
 char *getAlias(char *name);
+int executePipeCommand(char *input);
 
 // create a function that returns an enum based on command entered to use in switch
 CommandType getCommandType(char *command)
@@ -257,7 +258,6 @@ char *buildPrompt()
 
     // create variable to hold relative path string
     char relative_path[MAX_CHAR_LENGTH];
-    if(cwd){
         // if cwd and home_dir are the same up until the length of home_dir, then cwd is under users home dir
         if (strncmp(cwd, home_dir, strlen(home_dir)) == 0){
             // build the relative path by reading cwd starting from where home_dir ends
@@ -273,7 +273,6 @@ char *buildPrompt()
         {
             snprintf(prompt_str, sizeof(prompt_str), "\033[34m[%s][%s]$ \033[0m", user, relative_path);
         }
-    }
 
     return prompt_str;
 }
@@ -386,58 +385,146 @@ int processInput()
 int externalCommand(char *command, char *args)
 {
 
-    pid_t pid = fork();
-    if (pid == -1)
-    {
-        perror("fork failed.\n");
-        return 1;
+    // create full command to check for pipe
+    char fullCommand[MAX_CHAR_LENGTH];
+
+    if(args != NULL){
+        snprintf(fullCommand, sizeof(fullCommand), "%s %s", command, args);
     }
-    else if (pid == 0)
-    {
-        // create an array to store the arguments
-        char *argv[MAX_CHAR_LENGTH];
+    else{
+        snprintf(fullCommand, sizeof(fullCommand), "%s", command);
+    }
 
-        // the first element of the array is the command
-        argv[0] = command;
+    // handle if command entered has a pipe 
+    char *pipePosition = strchr(fullCommand, '|');
+    if(pipePosition != NULL){
 
-        // if there were arguments entered
-        if (args != NULL)
+        *pipePosition = '\0';
+
+        // split the entered command into 2 seperate commands
+        char *firstCommand = fullCommand;
+        char *secondCommand = pipePosition + 1;
+
+        int fd[2];
+
+        if(pipe(fd) == -1){
+            perror("Pipe Error");
+            return 1;
+            exit(EXIT_FAILURE);
+        }
+
+        pid_t pid1 = fork();
+
+        // if the fork failed
+        if(pid1 == -1){
+            perror("Fork error");
+            return 1;
+            exit(EXIT_FAILURE);
+        }
+
+        if(pid1 == 0){
+            // close the read end of the pipe
+            close(fd[0]);
+            // redirect to pipe read end
+            dup2(fd[1], STDOUT_FILENO);
+            close(fd[1]);
+
+            char *argv1[] = {"/bin/sh", "-c", firstCommand, NULL};
+            execvp(argv1[0], argv1);
+
+            // if execvp returns then an error occured
+            perror("Error executing first command in pipe operation.");
+            return 1;
+            exit(EXIT_FAILURE);
+        }
+
+        pid_t pid2 = fork();
+
+        // if the fork failed
+        if(pid2 == -1){
+            perror("Fork error");
+            return 1;
+            exit(EXIT_FAILURE);
+        }
+
+        if(pid2 == 0){
+            // close the read end of the pipe
+            close(fd[1]);
+            // redirect to pipe write end
+            dup2(fd[0], STDIN_FILENO);
+            close(fd[0]);
+
+            char *argv2[] = {"/bin/sh", "-c", secondCommand, NULL};
+            execvp(argv2[0], argv2);
+
+            // if execvp returns then an error occured
+            perror("Error executing second command in pipe operation.");
+            return 1;
+            exit(EXIT_FAILURE);
+        }
+
+        close(fd[0]);
+        close(fd[1]);
+        wait(NULL);
+        wait(NULL);
+        return 0;
+    }
+
+    else{
+
+        pid_t pid = fork();
+        if (pid == -1)
         {
-            // create variable to hold arguments by seperating arguments entered by spaces between them
-            char *token = strtok(args, " ");
+            perror("fork failed.\n");
+            return 1;
+        }
+        else if (pid == 0)
+        {
+            // create an array to store the arguments
+            char *argv[MAX_CHAR_LENGTH];
 
-            int i = 1;
-            // iterate through the arguments passed
-            while (token != NULL)
+            // the first element of the array is the command
+            argv[0] = command;
+
+            // if there were arguments entered
+            if (args != NULL)
             {
-                // store each argument(token) in the argument array(argv)
-                argv[i++] = token;
-                // return the next argument/token from the string entered
-                token = strtok(NULL, " ");
+                // create variable to hold arguments by seperating arguments entered by spaces between them
+                char *token = strtok(args, " ");
+
+                int i = 1;
+                // iterate through the arguments passed
+                while (token != NULL)
+                {
+                    // store each argument(token) in the argument array(argv)
+                    argv[i++] = token;
+                    // return the next argument/token from the string entered
+                    token = strtok(NULL, " ");
+                }
+
+                argv[i] = NULL;
+            }
+            else
+            {
+                argv[1] = NULL;
             }
 
-            argv[i] = NULL;
+            // execute the command and arguments passed
+            execvp(command, argv);
+
+            // If execvp returns, it means the command failed
+            fprintf(stderr, "Unknown Command: %s\n", command);
+            return 1;
+            exit(EXIT_FAILURE);
         }
+
         else
         {
-            argv[1] = NULL;
+            // wait for child preocess to finish
+            int status;
+            waitpid(pid, &status, 0);
+            return 0;
         }
-
-        // execute the command and arguments passed
-        execvp(command, argv);
-
-        // If execvp returns, it means the command failed
-        fprintf(stderr, "Unknown Command: %s\n", command);
-        return 1;
-        exit(EXIT_FAILURE);
-    }
-
-    else
-    {
-        // wait for child preocess to finish
-        int status;
-        waitpid(pid, &status, 0);
-        return 0;
     }
 }
 
