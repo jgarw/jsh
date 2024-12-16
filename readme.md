@@ -1,6 +1,8 @@
-# JSH - Joseph's Shell
+# 🚀 Custom Unix Shell
 
-## Features
+This project is a custom Unix shell implemented in C, designed to replicate and enhance core shell functionalities with a user-friendly experience. It supports built-in commands, external command execution, and dynamic Git branch prompts.
+
+## 📋 Features
 
 - **Core Command Execution:**
   - Supports built-in commands like `cd`, `exit`, and `help`.
@@ -18,9 +20,9 @@
 - **Error Handling:**
   - Provides clear error messages for invalid commands or syntax issues.
 
-## Installation
+## 🛠️ Installation
 
-### Dependencies
+### Dependencies 📦
 
 Ensure the following dependencies are installed:
 
@@ -52,7 +54,7 @@ Ensure the following dependencies are installed:
     ```
 
 
-### Build the Shell
+### Build the Shell 🔨
 
 Clone the repository and compile **JSH**:
 
@@ -62,7 +64,7 @@ cd jsh
 gcc shell.c -o jsh -lreadline
 ```
 
-### Run the Shell
+### Run the Shell 💻
 
 ```shell
 ./jsh
@@ -114,7 +116,7 @@ alias ll="ls -la"
 alias cat="bat"
 ```
 
-## Roadmap
+## 📅 Roadmap
 
 - **Job Control**: Background and foreground process management.
 - **Redirection**: Support for input and output redirection (`>`, `>>`, `<`).
