@@ -4,18 +4,21 @@ This project is a custom Unix shell implemented in C, designed to replicate and 
 
 ## 📋 Features
 
-- **Core Shell Commands:**
-  - Supports built-in commands like `cd` and `exit`.
-  - Executes external commands with argument handling and process management.
+- **Core Command Execution:**
+  - Supports built-in commands like `cd`, `exit`, and `help`.
+  - Executes standard Unix commands with argument handling.
 
-- **Dynamic Git Branch Prompt:**
-  - Displays the current Git branch in the prompt if the working directory is inside a Git repository.
+- **Piping (`|`):**
+  - Allows combining multiple commands by connecting their input and output.
 
-- **Command History:**
-  - Supports command history using the `readline` library, allowing easy retrieval of past commands.
+- **Aliasing:**
+  - Create custom shortcuts using the `alias` command to improve productivity.
+
+- **Configuration File:**
+  - Loads user-defined aliases and settings from a `.jshrc` file.
 
 - **Error Handling:**
-  - Provides error messages for failed commands and handles edge cases gracefully.
+  - Provides clear error messages for invalid commands or syntax issues.
 
 ## 🛠️ Installation
 
@@ -24,48 +27,101 @@ This project is a custom Unix shell implemented in C, designed to replicate and 
 Ensure the following dependencies are installed:
 
 **GCC Compiler:**  
-  - apt:
+  - **apt**:
     ```shell
     sudo apt install build-essential
     ```
-  - Homebrew:
+  - **Homebrew**:
     ```shell
     brew install gcc
     ```
-  - dnf:
+  - **dnf**:
     ```shell
     sudo dnf install gcc
     ```
 **Readline Library:**
-  - apt:
+  - **apt**:
     ```shell
     sudo apt install libreadline-dev
     ```
-  - Homebrew:
+  - **Homebrew**:
     ```shell
     brew install readline
     ```
-  - dnf:
+  - **dnf**:
     ```shell
     sudo dnf install readline-devel
     ```
 
+
 ### Build the Shell 🔨
 
-Clone the repository and build the shell:
+Clone the repository and compile **JSH**:
+
 ```shell
-git clone <repository-url>
-cd <project-folder>
+git clone https://github.com/jgarw/jsh.git 
+cd jsh
 gcc shell.c -o jsh -lreadline
 ```
 
 ### Run the Shell 💻
+
 ```shell
 ./jsh
 ```
 
-## 📅 Upcoming Features
+## Usage
 
-- **Syntax Highlighting**
-- **Installation Script**
-- **Aliasing**
+### Basic Commands
+
+Run any Unix-like command:
+
+```shell
+jsh> ls -la
+```
+
+### Piping Commands
+
+Connect commands using the `|` operator:
+
+```shell
+jsh> cat file.txt | grep "search term"
+```
+
+### Built-in Commands
+
+- **Change Directory**:
+  ```shell
+  jsh> cd /path/to/directory
+  ```
+- **Exit the Shell**:
+  ```shell
+  jsh> exit
+  ```
+
+### Aliasing
+
+Create aliases for frequently used commands:
+
+```shell
+jsh> alias ll="ls -la"
+```
+
+### Configuration with `.jshrc`
+
+Add aliases and custom configurations in a `.jshrc` file located in your home directory:
+
+```shell
+alias ll="ls -la"
+alias cat="bat"
+```
+
+## 📅 Roadmap
+
+- **Job Control**: Background and foreground process management.
+- **Redirection**: Support for input and output redirection (`>`, `>>`, `<`).
+- **Scripting**: Ability to execute shell scripts.
+
+## Contributing
+
+Contributions are welcome! If you'd like to improve **JSH**, please open an issue or submit a pull request.
