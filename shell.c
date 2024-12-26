@@ -71,9 +71,18 @@ void loadConfig()
     // get the home directory location
     char *home = getenv("HOME");
 
-    char location[MAX_CHAR_LENGTH];
+    // synamically allocate memory for location
+    size_t location_size = strlen(home) + strlen("/.jshrc") + 1;
+    char *location = (char *)malloc(location_size);
 
-    snprintf(location, sizeof(location), "%s/.jshrc", home);
+    // handle memory allocation failure
+    if (location == NULL)
+    {
+        fprintf(stderr, "\033[31mFailed to allocate memory for the config file path.\n");
+        return;
+    }
+    
+    snprintf(location, location_size, "%s/.jshrc", home);
 
     // read the config file at the location
     FILE *file = fopen(location, "r");
