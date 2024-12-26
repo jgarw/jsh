@@ -81,7 +81,7 @@ void loadConfig()
         fprintf(stderr, "\033[31mFailed to allocate memory for the config file path.\n");
         return;
     }
-    
+
     snprintf(location, location_size, "%s/.jshrc", home);
 
     // read the config file at the location
@@ -102,7 +102,8 @@ void loadConfig()
     }
 
     // store lines read
-    char line[MAX_CHAR_LENGTH];
+    size_t buffer_size = 128;
+    char *line = (char *)malloc(buffer_size);
     while (fgets(line, sizeof(line), file) != NULL)
     {
 
@@ -147,7 +148,14 @@ void loadConfig()
         }
     }
 
+    // free line from memory
+    free(line);
+
+    // close the file after parsing lines
     fclose(file);
+
+     // free location 
+    free(location);
 }
 
 // create a funciton that allows user to create aliases
