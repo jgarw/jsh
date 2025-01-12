@@ -232,8 +232,8 @@ void parseInput(char *input, char **command, char **args)
 // create function that will build a prompt string
 char *buildPrompt()
 {
-
-    static char prompt_str[MAX_CHAR_LENGTH];
+    static size_t buffer_size = 128;
+    static char *prompt_st = (char *)malloc(buffer_size);
 
     // set the cwd variable to the maximum size
     char cwd[MAX_CHAR_LENGTH];
