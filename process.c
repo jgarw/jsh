@@ -11,6 +11,7 @@
 CommandType getCommandType(char *command) {
     if (strcmp(command, "cd") == 0) return CMD_CD;
     if (strcmp(command, "alias") == 0) return CMD_ALIAS;
+    if (strcmp(command, "source") == 0) return CMD_SOURCE;
     if (strcmp(command, "exit") == 0) return CMD_EXIT;
     return CMD_UNKNOWN;
 }
@@ -70,6 +71,9 @@ int processInput() {
             char *value = strtok(NULL, "");
             addAlias(name, value);
         }
+        break;
+    case CMD_SOURCE:
+        sourceFile(args);
         break;
     case CMD_UNKNOWN:
         externalCommand(command, args);
@@ -162,3 +166,63 @@ char *buildPrompt()
 
     return prompt_str;
 }
+
+int sourceFile(char *filename)
+{
+    FILE *file = fopen(filename, "r");
+
+    if (!filename) {
+        fprintf(stderr, "Error: No file specified for source command.\n");
+        return 1;
+    }
+
+    if (!file)
+    {
+        fprintf(stderr, "Failed to open file: %s", filename);
+    }
+
+    char line[MAX_CHAR_LENGTH];
+
+    while(fgets(line, sizeof(line), file))
+    {
+        line[strcspn(line, "\n")] = '\0';
+        if (line[0] == '#' || strlen(line) == 0) continue;
+        char *command = NULL;
+        char *args = NULL;
+        parseInput(line, &command, &args);
+
+        char *aliasValue = getAlias(command);
+        if (aliasValue) {
+            char expandedCommand[MAX_CHAR_LENGTH];
+            snprintf(expandedCommand, sizeof(expandedCommand), "%s %s", aliasValue, args ? args : "");
+            parseInput(expandedCommand, &command, &args);
+        }
+    
+
+        CommandType cmdType = getCommandType(command);
+        switch (cmdType) {
+            case CMD_EXIT:
+                exit(0);
+                break;
+            case CMD_CD:
+                changeDir(args ? args : getenv("HOME"));
+                break;
+            case CMD_ALIAS:
+                if (args) {
+                    char *name = strtok(args, "=");
+                    char *value = strtok(NULL, "");
+                    addAlias(name, value);
+                }
+                break;
+            case CMD_UNKNOWN:
+                externalCommand(command, args);
+                break;
+            default:
+                fprintf(stderr, "Invalid command.\n");
+                break;
+        }
+    }
+    fclose(file);
+    return 0;
+}
+    
