@@ -51,7 +51,11 @@ int processCommand(char *command, char *args){
                 if (args) {
                     char *name = strtok(args, "=");
                     char *value = strtok(NULL, "");
+                    if (name && value){
                     addAlias(name, value);
+                    }else{
+                        fprintf(stderr, "Invalid alias command.\n");
+                    }
                 }
                 break;
             case CMD_SOURCE:
