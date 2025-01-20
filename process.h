@@ -8,6 +8,7 @@ typedef enum {
     CMD_CD,
     CMD_ALIAS,
     CMD_SOURCE,
+    CMD_PIPE,
     CMD_EXIT,
     CMD_UNKNOWN
 } CommandType;
@@ -17,7 +18,6 @@ void parseInput(char *input, char **command, char **args);
 int processCommand(char *command, char *args);
 int processInput();
 int externalCommand(char *command, char *args);
-char *buildPrompt();
 CommandType getCommandType(char *command);
 int sourceFile(char *filename);
 

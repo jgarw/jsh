@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 Alias aliases[MAX_ALIASES];
 int alias_count = 0;
@@ -24,7 +25,8 @@ void loadConfig() {
     char line[MAX_CHAR_LENGTH];
     while (fgets(line, sizeof(line), file)) {
         line[strcspn(line, "\n")] = '\0';
-        if (line[0] == '#' || strlen(line) == 0) continue;
+        if (line[0] == '#' || strlen(line) == 0)
+            continue;
 
         if (strncmp(line, "alias ", 6) == 0) {
             char *alias_part = line + 6;
@@ -44,6 +46,58 @@ void loadConfig() {
         }
     }
     fclose(file);
+}
+
+// create function that will build a prompt string
+char *buildPrompt() {
+
+    int max_prompt_len = 2048; // Adjust based on expected prompt size
+    char *prompt_str = malloc(max_prompt_len);
+
+    // set the cwd variable to the maximum size
+    char cwd[MAX_CHAR_LENGTH];
+    char *home_dir = getenv("HOME");
+    char *user = getenv("USER");
+    char branch[MAX_CHAR_LENGTH] = "";
+
+    // Check if the current directory is part of a Git repository
+    FILE *fp = popen("git rev-parse --abbrev-ref HEAD 2>/dev/null", "r");
+    if (fp != NULL) {
+        if (fgets(branch, sizeof(branch), fp) != NULL) {
+            // Remove trailing newline from branch name
+            branch[strcspn(branch, "\n")] = '\0';
+        }
+        pclose(fp);
+    }
+
+    // get cwd
+    getcwd(cwd, sizeof(cwd));
+
+    // create variable to hold relative path string
+    char relative_path[MAX_CHAR_LENGTH];
+    // if cwd and home_dir are the same up until the length of home_dir, then cwd is under users home dir
+    if (strncmp(cwd, home_dir, strlen(home_dir)) == 0) {
+        // build the relative path by reading cwd starting from where home_dir ends
+        snprintf(relative_path, sizeof(relative_path), "~%s", cwd + strlen(home_dir));
+    } else {
+        // if not inside the home directory, show the absolute path
+        snprintf(relative_path, sizeof(relative_path), "%s", cwd);
+    }
+
+    // if there is a git branch, build prompt with branch name
+    int len;
+    if (strlen(branch) > 0) {
+        len = snprintf(prompt_str, max_prompt_len, "\033[34m[%s][%s](\033[33m%s\033[34m)$ \033[0m", user, relative_path, branch);
+    } else {
+        len = snprintf(prompt_str, max_prompt_len, "\033[34m[%s][%s]$ \033[0m", user, relative_path);
+    }
+
+    // Ensure the string was not truncated
+    if (len >= max_prompt_len) {
+        fprintf(stderr, "Warning: Prompt string was truncated.\n");
+    }
+
+    return prompt_str;
 }
 
 void addAlias(char *name, char *value) {
