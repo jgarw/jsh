@@ -16,10 +16,8 @@ typedef enum {
 void changeDir(char *path);
 void parseInput(char *input, char **command, char **args);
 int processCommand(char *command, char *args);
-int executePipe(char *input);
 int processInput();
 int externalCommand(char *command, char *args);
-// char *buildPrompt();
 CommandType getCommandType(char *command);
 int sourceFile(char *filename);
 
