@@ -15,6 +15,7 @@ extern Alias aliases[MAX_ALIASES];
 extern int alias_count;
 
 void loadConfig();
+char *buildPrompt();
 void addAlias(char *name, char *value);
 char *getAlias(char *name);
 
