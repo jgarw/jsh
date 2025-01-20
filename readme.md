@@ -20,6 +20,12 @@ This project is a custom Unix shell implemented in C, designed to replicate and 
 - **Error Handling:**
   - Provides clear error messages for invalid commands or syntax issues.
 
+- **Sourcing Scripts:**
+  - Ability to source configuration scripts and define environment settings at startup.
+
+- **Dynamic Git Prompt:**
+  - Displays the current Git branch (if available) in the prompt for easier version control management.
+
 ## 🛠️ Installation
 
 ### Dependencies 📦
@@ -59,9 +65,14 @@ Ensure the following dependencies are installed:
 Clone the repository and compile **JSH**:
 
 ```shell
+# Clone the repository
 git clone https://github.com/jgarw/jsh.git 
+
+# Change into jsh directory
 cd jsh
-gcc shell.c -o jsh -lreadline
+
+# Run 'make' to build shell
+make
 ```
 
 ### Run the Shell 💻
@@ -120,7 +131,6 @@ alias cat="bat"
 
 - **Job Control**: Background and foreground process management.
 - **Redirection**: Support for input and output redirection (`>`, `>>`, `<`).
-- **Scripting**: Ability to execute shell scripts.
 
 ## Contributing
 
