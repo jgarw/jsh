@@ -68,6 +68,8 @@ int processCommand(char *command, char *args){
                 fprintf(stderr, "Invalid command.\n");
                 break;
         }
+
+    return 0;
 }
 
 // processInput function that will take a prompt string and process user input
@@ -134,7 +136,8 @@ int externalCommand(char *command, char *args) {
 char *buildPrompt()
 {
 
-    static char prompt_str[MAX_CHAR_LENGTH];
+    int max_prompt_len = 2048;  // Adjust based on expected prompt size
+    char *prompt_str = malloc(max_prompt_len);
 
     // set the cwd variable to the maximum size
     char cwd[MAX_CHAR_LENGTH];
@@ -172,14 +175,19 @@ char *buildPrompt()
     }
 
     // if there is a git branch, build prompt with branch name
-    if (strlen(branch) > 0)
-    {
-        snprintf(prompt_str, sizeof(prompt_str), "\033[34m[%s][%s](\033[33m%s\033[34m)$ \033[0m", user, relative_path, branch);
+    int len;
+    if (strlen(branch) > 0) {
+        len = snprintf(prompt_str, max_prompt_len, "\033[34m[%s][%s](\033[33m%s\033[34m)$ \033[0m", user, relative_path, branch);
+    } else {
+        len = snprintf(prompt_str, max_prompt_len, "\033[34m[%s][%s]$ \033[0m", user, relative_path);
     }
-    else
-    {
-        snprintf(prompt_str, sizeof(prompt_str), "\033[34m[%s][%s]$ \033[0m", user, relative_path);
+
+    // Ensure the string was not truncated
+    if (len >= max_prompt_len) {
+        fprintf(stderr, "Warning: Prompt string was truncated.\n");
     }
+
+    
 
     return prompt_str;
 }
