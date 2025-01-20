@@ -8,6 +8,7 @@
 #include <readline/history.h>
 #include <sys/wait.h>
 
+// getCommandType function that will take a command and return the type of command
 CommandType getCommandType(char *command) {
     if (strcmp(command, "cd") == 0) return CMD_CD;
     if (strcmp(command, "alias") == 0) return CMD_ALIAS;
@@ -16,17 +17,58 @@ CommandType getCommandType(char *command) {
     return CMD_UNKNOWN;
 }
 
+// changeDir function that will take a path and change the current working directory
 void changeDir(char *path) {
     chdir(path);
 }
 
+// parseInput function that will take a string and split it into a command and args
 void parseInput(char *input, char **command, char **args) {
     *command = strtok(input, " ");
     *args = strtok(NULL, "");
 }
 
-int processInput() {
-    char *prompt_str = buildPrompt();
+// processCommand function that will take a command and args and execute the command
+int processCommand(char *command, char *args){
+
+    char *aliasValue = getAlias(command);
+        if (aliasValue) {
+            char expandedCommand[MAX_CHAR_LENGTH];
+            snprintf(expandedCommand, sizeof(expandedCommand), "%s %s", aliasValue, args ? args : "");
+            parseInput(expandedCommand, &command, &args);
+        }
+    
+        // get the command type
+        CommandType cmdType = getCommandType(command);
+        switch (cmdType) {
+            case CMD_EXIT:
+                exit(0);
+                break;
+            case CMD_CD:
+                changeDir(args ? args : getenv("HOME"));
+                break;
+            case CMD_ALIAS:
+                if (args) {
+                    char *name = strtok(args, "=");
+                    char *value = strtok(NULL, "");
+                    addAlias(name, value);
+                }
+                break;
+            case CMD_SOURCE:
+                sourceFile(args);
+                break;
+            case CMD_UNKNOWN:
+                externalCommand(command, args);
+                break;
+            default:
+                fprintf(stderr, "Invalid command.\n");
+                break;
+        }
+}
+
+// processInput function that will take a prompt string and process user input
+int processInput(char *prompt_str) {
+
     if (!prompt_str) {
         fprintf(stderr, "Failed to build prompt.\n");
         return 1;
@@ -50,41 +92,12 @@ int processInput() {
     char *args = NULL;
     parseInput(user_input, &command, &args);
 
-    char *aliasValue = getAlias(command);
-    if (aliasValue) {
-        char expandedCommand[MAX_CHAR_LENGTH];
-        snprintf(expandedCommand, sizeof(expandedCommand), "%s %s", aliasValue, args ? args : "");
-        parseInput(expandedCommand, &command, &args);
-    }
-
-    CommandType cmdType = getCommandType(command);
-    switch (cmdType) {
-    case CMD_EXIT:
-        exit(0);
-        break;
-    case CMD_CD:
-        changeDir(args ? args : getenv("HOME"));
-        break;
-    case CMD_ALIAS:
-        if (args) {
-            char *name = strtok(args, "=");
-            char *value = strtok(NULL, "");
-            addAlias(name, value);
-        }
-        break;
-    case CMD_SOURCE:
-        sourceFile(args);
-        break;
-    case CMD_UNKNOWN:
-        externalCommand(command, args);
-        break;
-    default:
-        fprintf(stderr, "Invalid command.\n");
-        break;
-    }
+    // 
+    processCommand(command, args);
     return 0;
 }
 
+// externalCommand function that will take a command and args and execute the command
 int externalCommand(char *command, char *args) {
     pid_t pid = fork();
     if (pid == -1) {
@@ -167,6 +180,7 @@ char *buildPrompt()
     return prompt_str;
 }
 
+// sourceFile function that will take a filename and execute the commands in the file
 int sourceFile(char *filename)
 {
     FILE *file = fopen(filename, "r");
@@ -190,37 +204,8 @@ int sourceFile(char *filename)
         char *command = NULL;
         char *args = NULL;
         parseInput(line, &command, &args);
-
-        char *aliasValue = getAlias(command);
-        if (aliasValue) {
-            char expandedCommand[MAX_CHAR_LENGTH];
-            snprintf(expandedCommand, sizeof(expandedCommand), "%s %s", aliasValue, args ? args : "");
-            parseInput(expandedCommand, &command, &args);
-        }
-    
-
-        CommandType cmdType = getCommandType(command);
-        switch (cmdType) {
-            case CMD_EXIT:
-                exit(0);
-                break;
-            case CMD_CD:
-                changeDir(args ? args : getenv("HOME"));
-                break;
-            case CMD_ALIAS:
-                if (args) {
-                    char *name = strtok(args, "=");
-                    char *value = strtok(NULL, "");
-                    addAlias(name, value);
-                }
-                break;
-            case CMD_UNKNOWN:
-                externalCommand(command, args);
-                break;
-            default:
-                fprintf(stderr, "Invalid command.\n");
-                break;
-        }
+        processCommand(command, args);
+        
     }
     fclose(file);
     return 0;
