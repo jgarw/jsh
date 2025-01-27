@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <unistd.h>
 
 // getCommandType function that will take a command and return the type of command
@@ -196,6 +198,72 @@ int externalCommand(char *command, char *args) {
         wait(NULL);
         wait(NULL);
         return 0;
+    }
+
+    //handle if command has > redirect
+    char *outputPosition = strchr(fullCommand, '>');
+    if (outputPosition != NULL){
+
+        // seperate at > character
+        *outputPosition = '\0';
+
+        // command is input before >
+        char *commandPart = fullCommand;
+        //file is input after >
+        char *outputFile = outputPosition + 1;
+
+        // remove white space from file name
+        outputFile += strspn(outputFile, " ");
+        
+        if(outputFile != NULL){
+
+            pid_t pid = fork();
+
+            // if fork fails
+            if(pid == -1){
+                perror("Fork failed during output redirect process.");
+                return 1;
+            }
+
+            // fork was successful
+            if(pid == 0){
+
+                // open the specified file/create if non existent
+                int fd = open(outputFile, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+
+                //if file failed to open or create
+                if(fd == -1){
+                    perror("Error while opening file.");
+                    exit(EXIT_FAILURE);
+                }
+
+                // redirect std output to the file
+                dup2(fd, STDOUT_FILENO);
+                close(fd);
+
+                // create array for command and arguments
+                char *argv[MAX_CHAR_LENGTH];
+                // store parsed command and arguments into array
+                parseInput(commandPart, &argv[0], &argv[1]);
+
+                // execute the command and arguments with std output redirected to file
+                execvp(argv[0], argv);
+
+                
+                // If execvp fails
+                perror("Command execution failed");
+                exit(EXIT_FAILURE);
+                
+            } else {
+
+                // In the parent process
+                int status;
+                waitpid(pid, &status, 0);
+                return 0;
+            }
+        
+        }
+
     }
 
     else {
